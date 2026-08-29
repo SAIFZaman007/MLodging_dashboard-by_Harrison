@@ -1,9 +1,13 @@
 # =============================================================================
 # 8888 Augusta — operator console / admin dashboard (nginx)
 # =============================================================================
+# FILENAME MATTERS. Must be `nginx.conf.template`: the Dockerfile copies it to
+# /etc/nginx/templates/ and the nginx image's entrypoint runs envsubst over
+# every *.template there at boot.
+#
 # Two jobs, and the order of the location blocks is what makes both work:
 #
-#   1. /api/  is proxied to the API container.
+#   1. /api/  is proxied to the API.
 #   2. Everything else falls back to index.html for client-side routing.
 # =============================================================================
 
@@ -38,41 +42,52 @@ server {
 
     # ---------------------------------------------------------------- API proxy
 
-    resolver 127.0.0.11 valid=10s ipv6=off;
+    resolver 127.0.0.11 1.1.1.1 valid=10s ipv6=off;
 
     location /api/ {
-        set                $api_upstream "${API_UPSTREAM}";
-        proxy_pass         http://$api_upstream$request_uri;
+        set                $api_origin "${API_ORIGIN}";
+        set                $api_host   "${API_HOST}";
+        proxy_pass         $api_origin$request_uri;
         proxy_http_version 1.1;
 
-        proxy_set_header   Host              $host;
+        # Must be the UPSTREAM's hostname, not $host. See the note above.
+        proxy_set_header   Host              $api_host;
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   Connection        "";
 
+        proxy_ssl_server_name on;
+        proxy_ssl_name        $api_host;
+
         proxy_connect_timeout 5s;
         proxy_read_timeout   60s;
         proxy_send_timeout   60s;
 
+        # A 401 from the API must reach the browser as a 401, not as an nginx
+        # error page — the console's auth refresh depends on seeing the real
+        # status code.
         proxy_intercept_errors off;
     }
 
     # Pass /health through so an uptime check can reach the API via this host.
     location = /health {
-        set              $health_upstream "${API_UPSTREAM}";
-        proxy_pass       http://$health_upstream/health;
-        proxy_set_header Host $host;
+        set              $health_origin "${API_ORIGIN}";
+        set              $health_host   "${API_HOST}";
+        proxy_pass       $health_origin/health;
+        proxy_set_header Host $health_host;
+        proxy_ssl_server_name on;
+        proxy_ssl_name   $health_host;
         access_log       off;
     }
 
     # ------------------------------------------------------------ static assets
-    # Vite emits content-hashed filenames, so these are safe to cache forever.
     location = /robots.txt {
         add_header Content-Type text/plain;
         return 200 "User-agent: *\nDisallow: /\n";
     }
 
+    # Vite emits content-hashed filenames, so these are safe to cache forever.
     location /assets/ {
         expires    1y;
         add_header Cache-Control "public, immutable";
@@ -82,6 +97,13 @@ server {
     location ~* \.(?:webp|png|jpe?g|gif|svg|ico|woff2?|ttf|eot|mp4)$ {
         expires    30d;
         add_header Cache-Control "public";
+        try_files  $uri =404;
+    }
+
+    # version.json is the deployment fingerprint — never serve a cached one.
+    location = /version.json {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        expires    off;
         try_files  $uri =404;
     }
 

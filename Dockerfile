@@ -2,9 +2,10 @@
 # 8888 Augusta — operator console image
 #
 # Build:
-#   docker build -t 8888augusta/dashboard:1.0.0 \
-#     --build-arg APP_VERSION=1.0.0 \
+#   docker build -t 8888augusta/dashboard:1.0.0\
+#     --build-arg APP_VERSION=1.0.1 \
 #     --build-arg GIT_SHA=$(git rev-parse --short HEAD) .
+#
 # =============================================================================
 
 # --- Build stage -------------------------------------------------------------
@@ -14,14 +15,10 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-# Forces linux-x64 optional native binaries (Rolldown/esbuild). A node_modules tree built on Windows will not run here — always a clean install.
 RUN npm ci --os=linux --cpu=x64
 
 COPY . .
 
-# Empty default => same-origin /api/v1 via the nginx proxy below.
-# Override only when the API is on another host:
-#   --build-arg VITE_API_BASE_URL=https://api.8888augusta.com
 ARG VITE_API_BASE_URL=""
 ARG APP_VERSION=0.0.0-dev
 ARG GIT_SHA=unknown
@@ -38,7 +35,9 @@ RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY nginx.conf.template /etc/nginx/templates/app.conf.template
 
-ENV API_UPSTREAM=api:8000
+ENV API_ORIGIN=http://api:8000
+ENV API_HOST=api
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 ARG APP_VERSION=0.0.0-dev
