@@ -9,12 +9,18 @@ import {
 } from "react";
 
 import { apiClient, tokenStorage } from "@/api/client";
-import type { User } from "@/api/types";
+import { ROLE_RANK, type User, type UserRole } from "@/api/types";
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
+  role: UserRole | null;
+  /** True when the signed-in user's rank meets or exceeds `role`. */
+  hasRank: (role: UserRole) => boolean;
   isAdmin: boolean;
+  canManageTeam: boolean;
+  canManageChannels: boolean;
+  canManageOperations: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -62,19 +68,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
+  const value = useMemo<AuthContextValue>(() => {
+    const rank = user ? (ROLE_RANK[user.role] ?? 0) : 0;
+    const hasRank = (role: UserRole) => rank >= ROLE_RANK[role];
+
+    return {
       user,
       isLoading,
-      // Role gating is a UX affordance only — every admin-only action is also
-      // enforced server-side, so hiding a button is never the security boundary.
-      isAdmin: user?.role === "admin",
+      role: user?.role ?? null,
+      hasRank,
+      isAdmin: hasRank("admin"),
+      // Team accounts, deletions, credential resets.
+      canManageTeam: hasRank("admin"),
+      // Channel feed URLs are calendar credentials — manager and above.
+      canManageChannels: hasRank("manager"),
+      // Day-to-day: properties, bookings, orders.
+      canManageOperations: hasRank("staff"),
       login,
       logout,
       refreshUser,
-    }),
-    [user, isLoading, login, logout, refreshUser],
-  );
+    };
+  }, [user, isLoading, login, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

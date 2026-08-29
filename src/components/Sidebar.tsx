@@ -5,41 +5,54 @@ import {
   LayoutDashboard,
   ListOrdered,
   LogOut,
+  RefreshCw,
   Search,
   Share2,
   Users,
 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
+import { ROLE_LABELS, type UserRole } from "@/api/types";
 import { formatPhoneDisplay, telHref } from "@/lib/format";
 
-const NAV_SECTIONS = [
+/* `minRole` is the lowest rank that should see the link. It mirrors the API's
+   own rank ladder, so a moderator is not shown pages where every control 403s. */
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  end: boolean;
+  minRole: UserRole;
+}
+
+const NAV_SECTIONS: Array<{ heading: string; items: NavItem[] }> = [
   {
     heading: "Manage",
     items: [
-      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true, adminOnly: false },
-      { to: "/orders", label: "Orders", icon: ListOrdered, end: false, adminOnly: false },
-      { to: "/calendar", label: "Calendar", icon: Calendar, end: false, adminOnly: false },
-      { to: "/properties", label: "Properties", icon: Home, end: false, adminOnly: false },
+      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true, minRole: "moderator" },
+      { to: "/orders", label: "Orders", icon: ListOrdered, end: false, minRole: "staff" },
+      { to: "/calendar", label: "Calendar", icon: Calendar, end: false, minRole: "moderator" },
+      { to: "/channel-sync", label: "Channel Sync", icon: RefreshCw, end: false, minRole: "staff" },
+      { to: "/properties", label: "Properties", icon: Home, end: false, minRole: "staff" },
     ],
   },
   {
     heading: "Growth",
     items: [
-      { to: "/social-organics", label: "Social Organics", icon: Share2, end: false, adminOnly: false },
-      { to: "/seo", label: "SEO", icon: Search, end: false, adminOnly: false },
+      { to: "/social-organics", label: "Social Organics", icon: Share2, end: false, minRole: "moderator" },
+      { to: "/seo", label: "SEO", icon: Search, end: false, minRole: "moderator" },
     ],
   },
   {
     heading: "Settings",
-    items: [{ to: "/users", label: "Team", icon: Users, end: false, adminOnly: true }],
+    items: [{ to: "/users", label: "Team", icon: Users, end: false, minRole: "admin" }],
   },
 ];
 
 const PHONE = "+16024788888";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, hasRank, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -64,7 +77,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       {/* Only the nav list scrolls, and only if it ever outgrows the rail. */}
       <nav className="scroll-slim min-h-0 flex-1 overflow-y-auto px-3 pb-4">
         {NAV_SECTIONS.map((section) => {
-          const visible = section.items.filter((item) => !item.adminOnly || isAdmin);
+          const visible = section.items.filter((item) => hasRank(item.minRole));
           if (visible.length === 0) return null;
 
           return (
@@ -103,7 +116,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           className="block text-sm text-brand-cream/80 transition-colors hover:text-brand-cream"
         >{formatPhoneDisplay(PHONE)}</a>
         <p className="truncate text-xs text-brand-cream/40">
-          {user?.full_name ?? "Operator"} · {user?.role ?? "staff"}
+          {user?.full_name ?? "Operator"} · {user ? ROLE_LABELS[user.role] : "Staff"}
         </p>
         <button
           type="button"

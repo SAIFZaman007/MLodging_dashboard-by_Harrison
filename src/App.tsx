@@ -8,12 +8,11 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Orders } from "@/pages/Orders";
 import { CalendarPage } from "@/pages/CalendarPage";
 import { Properties } from "@/pages/Properties";
+import { ChannelSync } from "@/pages/ChannelSync";
 import { SocialOrganics } from "@/pages/SocialOrganics";
 import { Seo } from "@/pages/Seo";
 import { Users } from "@/pages/Users";
 
-/** Client-side role gate. The API enforces the same rule independently — this
- *  only stops staff from landing on a page whose every action would 403. */
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useAuth();
   return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
@@ -32,6 +31,7 @@ export default function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/channel-sync" element={<ChannelSync />} />
                 <Route path="/properties" element={<Properties />} />
                 <Route path="/social-organics" element={<SocialOrganics />} />
                 <Route path="/seo" element={<Seo />} />

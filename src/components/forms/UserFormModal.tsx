@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Field, SelectInput, TextInput, Toggle } from "@/components/ui/Field";
-import type { User, UserPayload, UserRole } from "@/api/types";
+import { ROLE_DESCRIPTIONS, type User, type UserPayload, type UserRole } from "@/api/types";
 
 interface Props {
   user: User | null;
@@ -12,17 +12,15 @@ interface Props {
   onSubmit: (payload: UserPayload) => void;
 }
 
-const ROLE_OPTIONS = [
-  { value: "admin", label: "Admin — full access including team management" },
-  { value: "staff", label: "Staff — manages properties, bookings and leads" },
+const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
+  { value: "admin", label: `Admin — ${ROLE_DESCRIPTIONS.admin}` },
+  { value: "manager", label: `Manager — ${ROLE_DESCRIPTIONS.manager}` },
+  { value: "staff", label: `Staff — ${ROLE_DESCRIPTIONS.staff}` },
+  { value: "moderator", label: `Moderator — ${ROLE_DESCRIPTIONS.moderator}` },
 ];
 
 const MIN_PASSWORD = 10;
 
-/* Mounted only while open and keyed by record id, so opening the dialog
-   creates a fresh component with its state seeded from props. That replaces the
-   usual "sync props into state with an effect" dance, which React 19 correctly
-   flags as a cascading render. */
 export function UserFormModal({ user, saving, onClose, onSubmit }: Props) {
   const isEdit = user !== null;
   const [email, setEmail] = useState(user?.email ?? "");
@@ -95,7 +93,7 @@ export function UserFormModal({ user, saving, onClose, onSubmit }: Props) {
           />
         </Field>
 
-        <Field label="Role" required>
+        <Field label="Role" required hint={ROLE_DESCRIPTIONS[role]}>
           <SelectInput
             value={role}
             onChange={(e) => setRole(e.target.value as UserRole)}

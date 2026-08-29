@@ -2,7 +2,39 @@
    than generated so the console can add view-model conveniences (label maps,
    optional fields) without fighting a codegen step. */
 
-export type UserRole = "admin" | "staff" | "guest";
+export type UserRole = "admin" | "manager" | "staff" | "moderator" | "guest";
+
+export const ROLE_RANK: Record<UserRole, number> = {
+  admin: 100,
+  manager: 60,
+  staff: 40,
+  moderator: 20,
+  guest: 0,
+};
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+  admin: "Admin",
+  manager: "Manager",
+  staff: "Staff",
+  moderator: "Moderator",
+  guest: "Guest",
+};
+
+export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
+  admin: "Full control, including team accounts and deletions",
+  manager: "All operations, refunds and channel calendar settings",
+  staff: "Properties, bookings and inquiries. No refunds or deletions",
+  moderator: "Inquiries and SEO content. Read-only elsewhere",
+  guest: "No operator console access",
+};
+
+/** Roles that can sign in to this console. */
+export const CONSOLE_ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
+  { value: "admin", label: "Admin" },
+  { value: "manager", label: "Manager" },
+  { value: "staff", label: "Staff" },
+  { value: "moderator", label: "Moderator" },
+];
 
 export interface User {
   id: string;
@@ -187,6 +219,55 @@ export interface PropertyImage {
   hero_url: string;
   alt_text: string | null;
   sort_order: number;
+}
+
+export type CalendarSyncStatus = "success" | "failed" | "skipped";
+
+export interface ChannelConfig {
+  property_id: string;
+  slug: string;
+  address: string;
+  is_published: boolean;
+  airbnb_ical_configured: boolean;
+  vrbo_ical_configured: boolean;
+  /* Masked previews only. The API never returns a usable feed URL — those are
+     calendar credentials and a compromised console session must not leak one. */
+  airbnb_ical_preview: string | null;
+  vrbo_ical_preview: string | null;
+  airbnb_last_synced_at: string | null;
+  vrbo_last_synced_at: string | null;
+  last_sync_error: string | null;
+  export_url: string;
+  upcoming_blocked_nights: number;
+}
+
+export interface ChannelConfigPayload {
+  airbnb_ical_url?: string;
+  vrbo_ical_url?: string;
+}
+
+export interface SyncLog {
+  id: string;
+  property_id: string;
+  source: BookingSource;
+  status: CalendarSyncStatus;
+  events_found: number;
+  events_created: number;
+  events_updated: number;
+  events_removed: number;
+  duration_ms: number;
+  feed_fingerprint: string | null;
+  error_message: string | null;
+  triggered_by: string;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export interface SyncRun {
+  property_id: string;
+  slug: string;
+  ok: boolean;
+  results: SyncLog[];
 }
 
 export interface Property {

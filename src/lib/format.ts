@@ -175,14 +175,14 @@ export function statusColor(status: string): string {
     vrbo: "bg-sky-100 text-sky-700",
     manual_block: "bg-slate-200 text-slate-700",
     admin: "bg-brand-forest/10 text-brand-forest",
+    manager: "bg-brand-gold/20 text-amber-800",
     staff: "bg-sky-100 text-sky-700",
+    moderator: "bg-violet-100 text-violet-700",
     guest: "bg-slate-100 text-slate-600",
   };
   return map[status] ?? "bg-slate-100 text-slate-700";
 }
 
-/** Ordered palette for charts — forest first so the primary series always
- *  reads as the brand colour regardless of which chart it appears in. */
 export const CHART_COLORS = [
   "#0e3b2c",
   "#c8a34d",
