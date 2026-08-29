@@ -37,10 +37,12 @@ server {
     add_header Referrer-Policy        "strict-origin-when-cross-origin" always;
 
     # ---------------------------------------------------------------- API proxy
-    # `api` is the compose service name; Docker's embedded DNS resolves it.
-    # Change API_UPSTREAM at build time if the API lives elsewhere.
+
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
     location /api/ {
-        proxy_pass         http://api:8000;
+        set                $api_upstream "${API_UPSTREAM}";
+        proxy_pass         http://$api_upstream$request_uri;
         proxy_http_version 1.1;
 
         proxy_set_header   Host              $host;
@@ -53,15 +55,13 @@ server {
         proxy_read_timeout   60s;
         proxy_send_timeout   60s;
 
-        # An API error is an API error. Without this, a 404 from FastAPI would
-        # be replaced by this server's HTML error page — reintroducing exactly
-        # the "API returns HTML" bug we are fixing.
         proxy_intercept_errors off;
     }
 
     # Pass /health through so an uptime check can reach the API via this host.
     location = /health {
-        proxy_pass       http://api:8000/health;
+        set              $health_upstream "${API_UPSTREAM}";
+        proxy_pass       http://$health_upstream/health;
         proxy_set_header Host $host;
         access_log       off;
     }
