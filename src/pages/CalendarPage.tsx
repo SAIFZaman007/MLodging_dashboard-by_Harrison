@@ -64,7 +64,20 @@ export function CalendarPage() {
     [properties],
   );
 
-  const syncable = (properties ?? []).filter((p) => p.airbnb_ical_url || p.vrbo_ical_url);
+  /*
+    Homes with at least one channel feed configured.
+
+    This previously filtered on `p.airbnb_ical_url || p.vrbo_ical_url`. Those
+    fields were removed from PropertyAdminOut when feed URLs were reclassified
+    as credentials, so both read `undefined` on every row and `syncable` was
+    always empty - which silently hid the entire "Sync external calendars"
+    panel below, including immediately after a feed had been saved.
+
+    `*_ical_configured` is the boolean the API actually returns for this.
+  */
+  const syncable = (properties ?? []).filter(
+    (p) => p.airbnb_ical_configured || p.vrbo_ical_configured,
+  );
 
   const visible = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);

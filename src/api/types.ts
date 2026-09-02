@@ -288,8 +288,17 @@ export interface Property {
   reviews_count: number | null;
   airbnb_url: string | null;
   vrbo_url: string | null;
-  airbnb_ical_url: string | null;
-  vrbo_ical_url: string | null;
+  /* NOTE: airbnb_ical_url / vrbo_ical_url are deliberately absent.
+     PropertyAdminOut stopped returning raw feed URLs when they were reclassified
+     as channel credentials. Declaring them here made TypeScript accept reads that
+     are `undefined` at runtime - which is exactly how CalendarPage's `syncable`
+     filter silently evaluated to [] and hid the sync panel. Use
+     `*_ical_configured`, or the masked `*_ical_preview`, both of which the API
+     does return. */
+  airbnb_ical_configured: boolean;
+  vrbo_ical_configured: boolean;
+  airbnb_ical_preview: string | null;
+  vrbo_ical_preview: string | null;
   walking_cluster: boolean;
   large_group: boolean;
   is_published: boolean;
