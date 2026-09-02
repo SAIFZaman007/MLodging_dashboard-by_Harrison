@@ -390,7 +390,7 @@ export function CalendarTimeline({
         >
           {/* HEADER ROW 1: MONTHS */}
           <div className="sticky top-0 z-30 flex border-b border-brand-forest/10 bg-brand-cream/60 backdrop-blur-xs">
-            <div className="sticky left-0 z-40 w-60 min-w-[240px] flex-shrink-0 border-r border-brand-forest/10 bg-brand-cream-dark/90 px-4 py-2 text-xs font-semibold text-brand-ink">
+            <div className="sticky left-0 z-40 w-60 min-w-60 shrink-0 border-r border-brand-forest/10 bg-brand-cream-dark/90 px-4 py-2 text-xs font-semibold text-brand-ink">
               Property ({displayProperties.length})
             </div>
             <div className="flex flex-1">
@@ -408,7 +408,7 @@ export function CalendarTimeline({
 
           {/* HEADER ROW 2: DAYS */}
           <div className="sticky top-9 z-30 flex border-b border-brand-forest/15 bg-white">
-            <div className="sticky left-0 z-40 w-60 min-w-[240px] flex-shrink-0 border-r border-brand-forest/10 bg-white px-4 py-1.5 text-[11px] font-mono uppercase tracking-wider text-brand-ink/40">
+            <div className="sticky left-0 z-40 w-60 min-w-60 shrink-0 border-r border-brand-forest/10 bg-white px-4 py-1.5 text-[11px] font-mono uppercase tracking-wider text-brand-ink/40">
               Dates
             </div>
             <div className="flex flex-1">
@@ -416,7 +416,7 @@ export function CalendarTimeline({
                 <div
                   key={day.iso}
                   style={{ width: `${columnWidth}px` }}
-                  className={`flex-shrink-0 border-r border-brand-forest/10 py-1 text-center text-[11px] leading-tight ${
+                  className={`shrink-0 border-r border-brand-forest/10 py-1 text-center text-[11px] leading-tight ${
                     day.isToday
                       ? "bg-brand-forest/15 text-brand-forest font-bold"
                       : day.isWeekend
@@ -445,10 +445,10 @@ export function CalendarTimeline({
             return (
               <div
                 key={property.id}
-                className="flex border-b border-brand-forest/10 hover:bg-brand-cream/15 transition-colors min-h-[58px]"
+                className="flex border-b border-brand-forest/10 hover:bg-brand-cream/15 transition-colors min-h-14.5"
               >
                 {/* Sticky Left Property Column */}
-                <div className="sticky left-0 z-20 w-60 min-w-[240px] flex-shrink-0 border-r border-brand-forest/10 bg-white px-4 py-2.5 flex flex-col justify-center shadow-[3px_0_8px_-3px_rgba(0,0,0,0.06)]">
+                <div className="sticky left-0 z-20 w-60 min-w-60 shrink-0 border-r border-brand-forest/10 bg-white px-4 py-2.5 flex flex-col justify-center shadow-[3px_0_8px_-3px_rgba(0,0,0,0.06)]">
                   <span className="font-medium text-xs text-brand-ink truncate" title={property.address}>
                     {property.address}
                   </span>
@@ -458,14 +458,14 @@ export function CalendarTimeline({
                 </div>
 
                 {/* Timeline Grid Area */}
-                <div className="relative flex-1 bg-white min-h-[58px] flex flex-col justify-center">
+                <div className="relative flex-1 bg-white min-h-14.5 flex flex-col justify-center">
                   {/* Background Date Guidelines */}
                   <div className="absolute inset-0 flex pointer-events-none z-0">
                     {dayHeaders.map((day) => (
                       <div
                         key={day.iso}
                         style={{ width: `${columnWidth}px` }}
-                        className={`flex-shrink-0 border-r border-brand-forest/5 ${
+                        className={`shrink-0 border-r border-brand-forest/5 ${
                           day.isToday
                             ? "bg-brand-forest/5"
                             : day.isWeekend
@@ -526,7 +526,7 @@ export function CalendarTimeline({
                               {valText ? `${valText} • ${nights}n` : (b.guest_name || sourceLabel(b.source))}
                             </span>
                             {!valText && (
-                              <span className="text-[10px] opacity-80 flex-shrink-0">
+                              <span className="text-[10px] opacity-80 shrink-0">
                                 {nights}n
                               </span>
                             )}
