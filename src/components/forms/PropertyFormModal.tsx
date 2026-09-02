@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -30,8 +31,6 @@ interface FormState {
   reviews_count: string;
   airbnb_url: string;
   vrbo_url: string;
-  airbnb_ical_url: string;
-  vrbo_ical_url: string;
   lat: string;
   lon: string;
   miles_to_angc: string;
@@ -59,8 +58,6 @@ const EMPTY: FormState = {
   reviews_count: "",
   airbnb_url: "",
   vrbo_url: "",
-  airbnb_ical_url: "",
-  vrbo_ical_url: "",
   lat: "",
   lon: "",
   miles_to_angc: "",
@@ -89,8 +86,6 @@ function toForm(property: Property): FormState {
     reviews_count: property.reviews_count == null ? "" : String(property.reviews_count),
     airbnb_url: property.airbnb_url ?? "",
     vrbo_url: property.vrbo_url ?? "",
-    airbnb_ical_url: property.airbnb_ical_url ?? "",
-    vrbo_ical_url: property.vrbo_ical_url ?? "",
     lat: property.lat == null ? "" : String(property.lat),
     lon: property.lon == null ? "" : String(property.lon),
     miles_to_angc: property.miles_to_angc == null ? "" : String(property.miles_to_angc),
@@ -166,8 +161,6 @@ export function PropertyFormModal({ property, saving, onClose, onSubmit }: Props
       reviews_count: numberOrNull(form.reviews_count),
       airbnb_url: form.airbnb_url.trim() || null,
       vrbo_url: form.vrbo_url.trim() || null,
-      airbnb_ical_url: form.airbnb_ical_url.trim() || null,
-      vrbo_ical_url: form.vrbo_ical_url.trim() || null,
       lat: numberOrNull(form.lat),
       lon: numberOrNull(form.lon),
       miles_to_angc: numberOrNull(form.miles_to_angc),
@@ -385,18 +378,30 @@ export function PropertyFormModal({ property, saving, onClose, onSubmit }: Props
             <Field label="VRBO listing URL">
               <TextInput value={form.vrbo_url} onChange={(e) => set("vrbo_url", e.target.value)} />
             </Field>
-            <Field label="Airbnb iCal URL" hint="Enables automatic double-booking prevention">
-              <TextInput
-                value={form.airbnb_ical_url}
-                onChange={(e) => set("airbnb_ical_url", e.target.value)}
-              />
-            </Field>
-            <Field label="VRBO iCal URL">
-              <TextInput
-                value={form.vrbo_ical_url}
-                onChange={(e) => set("vrbo_ical_url", e.target.value)}
-              />
-            </Field>
+            {/*
+              * Calendar feed URLs are deliberately NOT editable here.
+              *
+              * They used to be, and it was a data-loss bug rather than only a
+              * permissions one: the admin API returns a masked preview of a
+              * feed URL, never the real value, so these inputs hydrated to ""
+              * on every edit and the save then PATCHed null over a working
+              * feed. Editing a home's bathroom count silently unconfigured its
+              * Airbnb sync.
+              *
+              * Feeds now live only on Channel Sync, which is Manager+ and
+              * validates the URL against the approved channel hosts.
+              */}
+            <div className="sm:col-span-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+              <p className="text-sm font-medium text-slate-700">Calendar feed URLs</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Airbnb and VRBO iCal feeds are managed on the{" "}
+                <Link to="/channel-sync" className="font-medium text-slate-900 underline">
+                  Channel Sync
+                </Link>{" "}
+                screen. They are calendar credentials, so they are restricted to
+                Manager and Admin and are never shown in full after saving.
+              </p>
+            </div>
           </div>
         </section>
 
